@@ -3,15 +3,23 @@ from datetime import datetime
 import telebot
 import time
 import imdb
+import re
 
 
 def get_date(s_date):
-    date_patterns = ["%d %b %Y", "%Y %b %d", "%Y"]
+    date_patterns = ["%d %b %Y", "%Y %b %d", "%d %B %Y", "%Y"]
     for pattern in date_patterns:
         try:
             return datetime.strptime(s_date, pattern).date()
         except:
             pass
+
+
+def extract_date(string):
+    matches = re.findall('(\d{2}[\/ ](\d{2}|January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|Jul|August|'
+                         'Aug|September|Sep|October|Oct|November|Nov|December|Dec)[\/ ]\d{2,4})', string)
+    for match in matches:
+        return match[0]
 
 
 bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
@@ -89,8 +97,32 @@ def answer(message):
             print("The next season will start in " + release)
             bot.reply_to(message, "The next season will start in " + release)
     elif media['kind'] == 'movie':
+        url = dataBase.get_imdbURL(media)
+        final_url = url + 'releaseinfo?ref_=tt_ov_inf'
+        a_tag = '<a href="/title/tt' + code + '/releaseinfo"\ntitle="See more release dates" >'
+        print(url)
+
+
+        # Get the release date of last season available
+        page = urlopen(url)
+        html_bytes = page.read()
+        html = html_bytes.decode("utf-8")
+        title_index = html.find(a_tag)
+        start_index = title_index + len(a_tag)
+        end_index = html.find('</a>', title_index)
+        title = html[start_index:end_index]
+
+        # releaseDate = datetime.strptime(release, '%d %b %Y').date()
+        releaseDate = extract_date(title)
+        print(releaseDate)
+
+        # there's no info yet
+        if releaseDate is None:
             print("Sorry! There's no available release date yet")
             bot.reply_to(message, "Sorry! There's no available release date yet")
+        else:
+            print("Release was on " + releaseDate)
+            bot.reply_to(message, "Release was on " + releaseDate)
 
 
 @bot.message_handler(commands=['start'])
