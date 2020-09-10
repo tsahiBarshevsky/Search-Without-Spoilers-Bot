@@ -22,6 +22,14 @@ def extract_date(string):
         return match[0]
 
 
+def extract_code(string, movies_list):
+    i = 0
+    for item in movies_list:
+        if item['title'] == string:
+            return movies_list[i].getID()
+        i += 1
+
+
 bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
 bot = telebot.TeleBot(token=bot_token)
 today = datetime.today().strftime('%d %b %Y')
@@ -37,11 +45,12 @@ dataBase = imdb.IMDb()
 def answer(message):
     name = str(message.text.split())
     movies = dataBase.search_movie(name)
+    print(movies)
     if not movies:
-        print("Sorry! I couldn't find any movie/series named " + str(message.text.split()))
-        bot.reply_to(message, "Sorry! I couldn't find any movie/series named " + str(message.text.split()))
+        print("Sorry! I couldn't find any movie/series named " + str(message.text))
+        bot.reply_to(message, "Sorry! I couldn't find any movie/series named " + str(message.text))
     else:
-        code = movies[0].getID()  # Get series/movie code
+        code = extract_code(str(message.text), movies)
         print(code)
         media = dataBase.get_movie(code)  # Search for the movie/series by the ID
         if media['kind'] == 'tv series':
@@ -103,7 +112,6 @@ def answer(message):
                 bot.reply_to(message, "The next season will start in " + release)
         elif media['kind'] == 'movie':
             url = dataBase.get_imdbURL(media)
-            final_url = url + 'releaseinfo?ref_=tt_ov_inf'
             a_tag = '<a href="/title/tt' + code + '/releaseinfo"\ntitle="See more release dates" >'
             print(url)
 
@@ -117,16 +125,26 @@ def answer(message):
             title = html[start_index:end_index]
 
             # releaseDate = datetime.strptime(release, '%d %b %Y').date()
-            releaseDate = extract_date(title)
+            release = extract_date(title)
+            releaseDate = get_date(release)
             print(releaseDate)
 
             # there's no info yet
             if releaseDate is None:
                 print("Sorry! There's no available release date yet")
                 bot.reply_to(message, "Sorry! There's no available release date yet")
-            else:
-                print("Release was on " + releaseDate)
-                bot.reply_to(message, "Release was on " + releaseDate)
+            # The movie has released
+            elif releaseDate < currentDate:
+                print("Release was on " + release)
+                bot.reply_to(message, "Release was on " + release)
+            # The movie will release this year
+            elif releaseDate.year == currentDate.year:
+                print("Release is on " + release)
+                bot.reply_to(message, "Release is on " + release)
+            # The movie will release in other year
+            elif releaseDate > currentDate:
+                print("Release is on " + release)
+                bot.reply_to(message, "Release is on " + release)
 
 
 @bot.message_handler(commands=['start'])
