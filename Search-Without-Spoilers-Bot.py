@@ -154,10 +154,10 @@ def answer(message):
         #         bot.reply_to(message, "Release is on " + release)
     else:
         keyboard = telebot.types.InlineKeyboardMarkup()
-        for i in range(len(movies)):
-            callback = movies[i]['title']
+        for movie in movies:
+            callback = extract_code(movie['title'], movies)  # every movie has a unique code
             keyboard.row(telebot.types.InlineKeyboardButton
-                         (movies[i]['title'] + " (" + movies[i]['kind'] + ")", callback_data=callback))
+                         (movie['title'] + " (" + movie['kind'] + ")", callback_data=callback))
         bot.send_message(message.chat.id, 'Oops! Seems like there are multiple options.\n'
                                           'What have you wanted to search for?', reply_markup=keyboard)
 
@@ -165,11 +165,11 @@ def answer(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     if call.message:
-        print(len(movies))
         for i in range(len(movies)):
-            if call.data == movies[i]['title']:
-                bot.send_message(call.message.chat.id, "You pick " + movies[i]['title'])
-                print(movies[i]['title'])
+            if call.data == movies[i].getID():
+                bot.send_message(call.message.chat.id, "OK! Searching info about " + movies[i]['title']
+                                 + " (" + movies[i]['kind'] + ")")
+                print(movies[i]['title'] + movies[i]['kind'])
     # code = extract_code(str(message.text), movies)
     # print(code)
     # media = dataBase.get_movie(code)  # Search for the movie/series by the ID
