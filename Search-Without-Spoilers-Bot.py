@@ -8,7 +8,7 @@ import re
 
 
 def get_date(s_date):
-    date_patterns = ["%d %b %Y", "%Y %b %d", "%d %B %Y", "%Y"]
+    date_patterns = ["%d %b %Y", "%Y %b %d", "%d %B %Y", "%b %Y", "%Y"]
     for pattern in date_patterns:
         try:
             return datetime.strptime(s_date, pattern).date()
@@ -17,8 +17,16 @@ def get_date(s_date):
 
 
 def extract_date(string):
-    matches = re.findall('(\d{1,2}[\/ ](\d{2}|January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|Jul|August|'
-                         'Aug|September|Sep|October|Oct|November|Nov|December|Dec)[\/ ]\d{2,4})', string)
+    # matches = re.findall('(January|Jan|February|Feb)[ ]\d{2,4}', string)
+    matches = re.findall(
+        '(\d{1,2}[\/ ](\d{2}|January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|'
+        'Jul|August|Aug|September|Sep|October|Oct|November|Nov|December|Dec)[\/ ]\d{2,4})', string)
+    if not matches:
+        matches = re.findall(
+            '(January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|Jul|August|Aug|September|Sep|October|Oct|'
+            'November|Nov|December|Dec)([ ]\d{2,4})',
+            string)
+        return "".join(matches[0])
     for match in matches:
         return match[0]
 
@@ -31,6 +39,66 @@ def extract_code(string, movies_list):
         i += 1
 
 
+def find_series_release_date(media):
+    # getting seasons of the series
+    season = media.data['seasons']
+
+    # getting rating of the series
+    # rating = series.data['rating']
+    # print(rating)
+
+    # print the seasons
+    print('There are', len(season), 'seasons')
+    # Episode_Release_date = dataBase.get_movie_release_dates(code)
+    # for i in Episode_Release_date['data']['release dates']:
+    #    if 'USA' in i:
+    #        print(i)
+
+    url = dataBase.get_imdbURL(media)
+    final_season = season[len(season) - 1]
+    url_final_season = url + 'episodes?season=' + final_season + '&ref_=tt_eps_sn_' + final_season
+    print(url)
+    print(url_final_season)
+
+    # Get the release date of last season available
+    page = urlopen(url_final_season)
+    html_bytes = page.read()
+    html = html_bytes.decode("utf-8")
+    title_index = html.find('<div class="airdate">')
+    start_index = title_index + len('<div class="airdate">')
+    end_index = html.find('</div>', title_index)
+    title = html[start_index:end_index]
+    new_title = title.strip()  # remove \n from original string
+    release = new_title.replace(".", "")  # remove . from month
+    print(release)
+
+    # releaseDate = datetime.strptime(release, '%d %b %Y').date()
+    release_date = get_date(release)
+    print(release_date)
+    return release_date, release
+
+
+def find_movie_release_date(media, code):
+    url = dataBase.get_imdbURL(media)
+    a_tag = '<a href="/title/tt' + code + '/releaseinfo"\ntitle="See more release dates" >'
+    print(url)
+
+    # Get the release date of last season available
+    page = urlopen(url)
+    html_bytes = page.read()
+    html = html_bytes.decode("utf-8")
+    title_index = html.find(a_tag)
+    start_index = title_index + len(a_tag)
+    end_index = html.find('</a>', title_index)
+    title = html[start_index:end_index]
+
+    # releaseDate = datetime.strptime(release, '%d %b %Y').date()
+    release = extract_date(title)
+    release_date = get_date(release)
+    print(release_date)
+    return release_date, release
+
+
 bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
 bot = telebot.TeleBot(token=bot_token)
 today = datetime.today().strftime('%d %b %Y')
@@ -40,10 +108,6 @@ print("The bot is now running")
 
 # Create database
 dataBase = imdb.IMDb()
-# movies = dataBase.search_movie('Endgame')
-# print(movies)
-# for movie in movies:
-#     print(movie['title'] + " " + movie['kind'])
 
 
 # Main function
@@ -53,9 +117,11 @@ def answer(message):
     global movies  # Global list for search results
     movies = dataBase.search_movie(name)
     print(movies)
+    # Nothing found - movies is empty
     if not movies:
         print("Sorry! I couldn't find any movie/series named " + str(message.text))
         bot.reply_to(message, "Sorry! I couldn't find any movie/series named " + str(message.text))
+    # Only on result - len(movies)=1
     elif len(movies) == 1:
         code = movies[0].getID()
         print(code)
@@ -64,42 +130,43 @@ def answer(message):
         print(movies[0]['title'] + movies[0]['kind'])
         media = dataBase.get_movie(code)  # Search for the movie/series by the ID
         if media['kind'] == 'tv series':
-            # getting seasons of the series
-            season = media.data['seasons']
+            # # getting seasons of the series
+            # season = media.data['seasons']
+            #
+            # # getting rating of the series
+            # # rating = series.data['rating']
+            # # print(rating)
+            #
+            # # print the seasons
+            # print('There are', len(season), 'seasons')
+            # # Episode_Release_date = dataBase.get_movie_release_dates(code)
+            # # for i in Episode_Release_date['data']['release dates']:
+            # #    if 'USA' in i:
+            # #        print(i)
+            #
+            # url = dataBase.get_imdbURL(media)
+            # final_season = season[len(season) - 1]
+            # url_final_season = url + 'episodes?season=' + final_season + '&ref_=tt_eps_sn_' + final_season
+            # print(url)
+            # print(url_final_season)
+            #
+            # # Get the release date of last season available
+            # page = urlopen(url_final_season)
+            # html_bytes = page.read()
+            # html = html_bytes.decode("utf-8")
+            # title_index = html.find('<div class="airdate">')
+            # start_index = title_index + len('<div class="airdate">')
+            # end_index = html.find('</div>', title_index)
+            # title = html[start_index:end_index]
+            # new_title = title.strip()  # remove \n from original string
+            # release = new_title.replace(".", "")  # remove . from month
+            # print(release)
+            #
+            # # releaseDate = datetime.strptime(release, '%d %b %Y').date()
+            # release_date = get_date(release)
+            # print(release_date)
 
-            # getting rating of the series
-            # rating = series.data['rating']
-            # print(rating)
-
-            # print the seasons
-            print('There are', len(season), 'seasons')
-            # Episode_Release_date = dataBase.get_movie_release_dates(code)
-            # for i in Episode_Release_date['data']['release dates']:
-            #    if 'USA' in i:
-            #        print(i)
-
-            url = dataBase.get_imdbURL(media)
-            final_season = season[len(season) - 1]
-            url_final_season = url + 'episodes?season=' + final_season + '&ref_=tt_eps_sn_' + final_season
-            print(url)
-            print(url_final_season)
-
-            # Get the release date of last season available
-            page = urlopen(url_final_season)
-            html_bytes = page.read()
-            html = html_bytes.decode("utf-8")
-            title_index = html.find('<div class="airdate">')
-            start_index = title_index + len('<div class="airdate">')
-            end_index = html.find('</div>', title_index)
-            title = html[start_index:end_index]
-            new_title = title.strip()  # remove \n from original string
-            release = new_title.replace(".", "")  # remove . from month
-            print(release)
-
-            # releaseDate = datetime.strptime(release, '%d %b %Y').date()
-            release_date = get_date(release)
-            print(release_date)
-
+            release_date, release = find_series_release_date(media)
             # there's no info yet
             if release_date is None:
                 print("Sorry! There's no available release date yet")
@@ -121,23 +188,7 @@ def answer(message):
                 print("The next season will start in " + release)
                 bot.send_message(message.chat.id, "The next season will start in " + release)
         elif media['kind'] == 'movie':
-            url = dataBase.get_imdbURL(media)
-            a_tag = '<a href="/title/tt' + code + '/releaseinfo"\ntitle="See more release dates" >'
-            print(url)
-
-            # Get the release date of last season available
-            page = urlopen(url)
-            html_bytes = page.read()
-            html = html_bytes.decode("utf-8")
-            title_index = html.find(a_tag)
-            start_index = title_index + len(a_tag)
-            end_index = html.find('</a>', title_index)
-            title = html[start_index:end_index]
-
-            # releaseDate = datetime.strptime(release, '%d %b %Y').date()
-            release = extract_date(title)
-            release_date = get_date(release)
-            print(release_date)
+            release_date, release = find_movie_release_date(media, code)
 
             # there's no info yet
             if release_date is None:
@@ -176,32 +227,8 @@ def callback_inline(call):
     print(call.data)
     media = dataBase.get_movie(call.data)  # Search for the movie/series by the ID
     if media['kind'] == 'tv series':
-        # getting seasons of the series
-        season = media.data['seasons']
 
-        # print the seasons
-        print('There are', len(season), 'seasons')
-
-        url = dataBase.get_imdbURL(media)
-        final_season = season[len(season) - 1]
-        url_final_season = url + 'episodes?season=' + final_season + '&ref_=tt_eps_sn_' + final_season
-        print(url)
-        print(url_final_season)
-
-        # Get the release date of last season available
-        page = urlopen(url_final_season)
-        html_bytes = page.read()
-        html = html_bytes.decode("utf-8")
-        title_index = html.find('<div class="airdate">')
-        start_index = title_index + len('<div class="airdate">')
-        end_index = html.find('</div>', title_index)
-        title = html[start_index:end_index]
-        new_title = title.strip()  # remove \n from original string
-        release = new_title.replace(".", "")  # remove . from month
-        print(release)
-
-        # releaseDate = datetime.strptime(release, '%d %b %Y').date()
-        release_date = get_date(release)
+        release_date, release = find_series_release_date(media)
         print(release_date)
 
         # there's no info yet
@@ -225,23 +252,7 @@ def callback_inline(call):
             print("The next season will start in " + release)
             bot.send_message(call.message.chat.id, "The next season will start in " + release)
     elif media['kind'] == 'movie':
-        url = dataBase.get_imdbURL(media)
-        a_tag = '<a href="/title/tt' + call.data + '/releaseinfo"\ntitle="See more release dates" >'
-        print(url)
-
-        # Get the release date of last season available
-        page = urlopen(url)
-        html_bytes = page.read()
-        html = html_bytes.decode("utf-8")
-        title_index = html.find(a_tag)
-        start_index = title_index + len(a_tag)
-        end_index = html.find('</a>', title_index)
-        title = html[start_index:end_index]
-
-        # releaseDate = datetime.strptime(release, '%d %b %Y').date()
-        release = extract_date(title)
-        release_date = get_date(release)
-        print(release_date)
+        release_date, release = find_movie_release_date(media, call.data)
 
         # there's no info yet
         if release_date is None:
