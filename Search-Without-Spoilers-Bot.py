@@ -207,9 +207,10 @@ def answer(message):
     else:
         keyboard = telebot.types.InlineKeyboardMarkup()
         for movie in movies:
-            callback = extract_code(movie['title'], movies)  # every movie has a unique code
-            keyboard.row(telebot.types.InlineKeyboardButton
-                         (movie['title'] + " (" + movie['kind'] + ")", callback_data=callback))
+            if movie['kind'] == 'tv series' or movie['kind'] == 'movie':
+                callback = extract_code(movie['title'], movies)  # every movie has a unique code
+                keyboard.row(telebot.types.InlineKeyboardButton
+                             (movie['title'] + " (" + movie['kind'] + ")", callback_data=callback))
         bot.send_message(message.chat.id, 'Oops! Seems like there are multiple options.\n'
                                           'What have you wanted to search for?', reply_markup=keyboard)
 
