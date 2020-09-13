@@ -1,6 +1,5 @@
 from urllib.request import urlopen
 from datetime import datetime
-from telebot import types
 import telebot
 import time
 import imdb
@@ -98,11 +97,11 @@ def find_movie_release_date(media, code):
     return release_date, release
 
 
+# Important declaration
 bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
 bot = telebot.TeleBot(token=bot_token)
 today = datetime.today().strftime('%d %b %Y')
 currentDate = datetime.strptime(today, '%d %b %Y').date()
-
 print("The bot is now running")
 
 # Create database
@@ -110,7 +109,7 @@ dataBase = imdb.IMDb()
 
 
 # Main function
-@bot.message_handler(func=lambda msg: msg.text is not None and msg.text != '/start')
+@bot.message_handler(func=lambda msg: msg.text is not None and msg.text != '/about' and msg.text != '/help')
 def answer(message):
     name = str(message.text.split())
     global movies  # Global list for search results
@@ -271,9 +270,24 @@ def callback_inline(call):
             bot.send_message(call.message.chat.id, "Release is on " + release)
 
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, 'Welcome!')
+@bot.message_handler(commands=['about'])
+def about(message):
+    about_string = \
+        "Want to search for information about a series or movie without being exposed to spoilers? " \
+        "I'm your solution! To get some help about how I'm working, tap /help or chose it from the commands" \
+        " menu below 👇🏼"
+    bot.send_message(message.chat.id, about_string)
+
+
+@bot.message_handler(commands=['help'])
+def help_user(message):
+    help_string = "What can I do?\n" \
+                  "1. Search for a series new season release date.\n" \
+                  "2. Search for a movie release date.\n" \
+                  "In both cases, just type the name of the series/movie. " \
+                  "If I'll find some multiple choices, I'll present to you all the " \
+                  "options, so you can pick the right one."
+    bot.send_message(message.chat.id, help_string)
 
 
 while True:
