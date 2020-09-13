@@ -106,10 +106,12 @@ print("The bot is now running")
 
 # Create database
 dataBase = imdb.IMDb()
+media_code = None
 
 
 # Main function
-@bot.message_handler(func=lambda msg: msg.text is not None and msg.text != '/about' and msg.text != '/help')
+@bot.message_handler(func=lambda msg: msg.text is not None and msg.text != '/about' and msg.text != '/help'
+                     and msg.text != '/rating')
 def answer(message):
     name = str(message.text.split())
     global movies  # Global list for search results
@@ -121,8 +123,12 @@ def answer(message):
         bot.reply_to(message, "Sorry! I couldn't find any movie/series named " + str(message.text))
     # Only on result - len(movies)=1
     elif len(movies) == 1:
+
         code = movies[0].getID()
+        global media_code
+        media_code = code
         print(code)
+        print(media_code)
         bot.send_message(message.chat.id, "OK! Searching info about " + movies[0]['title']
                          + " (" + movies[0]['kind'] + ")")
         print(movies[0]['title'] + movies[0]['kind'])
@@ -224,6 +230,8 @@ def callback_inline(call):
                                  + " (" + movies[i]['kind'] + ")")
                 print(movies[i]['title'] + movies[i]['kind'])
     print(call.data)
+    global media_code
+    media_code = call.data
     media = dataBase.get_movie(call.data)  # Search for the movie/series by the ID
     if media['kind'] == 'tv series':
 
@@ -289,6 +297,38 @@ def help_user(message):
                   "If I'll find some multiple choices, I'll present to you all the " \
                   "options, so you can pick the right one."
     bot.send_message(message.chat.id, help_string)
+
+
+@bot.message_handler(commands=['rating'])
+def rating(message):
+    # try:
+    #     movies
+    # except NameError:
+    #     string = "Search information about a series or movie first " \
+    #              "in order to use this command."
+    #     bot.send_message(message.chat.id, string)
+    # else:
+    #     media = dataBase.get_movie(movies[0].getID())
+    #     try:
+    #         media_rating = media.data['rating']
+    #     except KeyError:
+    #         bot.send_message(message.chat.id, "Oops! this " + media.data['kind'] + " has no rating yet.")
+    #     else:
+    #         bot.send_message(message.chat.id, media.data['title'] + " got a rating of " + str(media_rating) + ".")
+
+    if not media_code:
+        string = "Search information about a series or movie first " \
+                 "in order to use this command."
+        bot.send_message(message.chat.id, string)
+    else:
+        bot.send_message(message.chat.id, media_code)
+        media = dataBase.get_movie(media_code)
+        try:
+            media_rating = media.data['rating']
+        except KeyError:
+            bot.send_message(message.chat.id, "Sorry! this " + media.data['kind'] + " has no rating yet.")
+        else:
+            bot.send_message(message.chat.id, media.data['title'] + " got a rating of " + str(media_rating))
 
 
 while True:
