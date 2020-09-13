@@ -16,16 +16,15 @@ def get_date(s_date):
             pass
 
 
+# Extract date from string in movie page
 def extract_date(string):
-    # matches = re.findall('(January|Jan|February|Feb)[ ]\d{2,4}', string)
+    # Date format: %d %B %Y
     matches = re.findall(
         '(\d{1,2}[\/ ](\d{2}|January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|'
         'Jul|August|Aug|September|Sep|October|Oct|November|Nov|December|Dec)[\/ ]\d{2,4})', string)
     if not matches:
-        matches = re.findall(
-            '(January|Jan|February|Feb|March|Mar|April|Apr|May|June|Jun|July|Jul|August|Aug|September|Sep|October|Oct|'
-            'November|Nov|December|Dec)([ ]\d{2,4})',
-            string)
+        # Date format: %Y
+        matches = re.findall('(\d{2,4})', string)
         return "".join(matches[0])
     for match in matches:
         return match[0]
