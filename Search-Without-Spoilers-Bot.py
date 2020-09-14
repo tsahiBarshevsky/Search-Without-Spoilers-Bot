@@ -212,13 +212,18 @@ def answer(message):
                 bot.send_message(message.chat.id, "Release is on " + release)
     else:
         keyboard = telebot.types.InlineKeyboardMarkup()
+        is_found = False
         for movie in movies:
             if movie['kind'] == 'tv series' or movie['kind'] == 'movie':
                 callback = extract_code(movie['title'], movies)  # every movie has a unique code
                 keyboard.row(telebot.types.InlineKeyboardButton
                              (movie['title'] + " (" + movie['kind'] + ")", callback_data=callback))
-        bot.send_message(message.chat.id, 'Oops! Seems like there are multiple options.\n'
-                                          'What have you wanted to search for?', reply_markup=keyboard)
+                is_found = True
+        if is_found:
+            bot.send_message(message.chat.id, 'Oops! Seems like there are multiple options.\n'
+                                              'What have you wanted to search for?', reply_markup=keyboard)
+        else:
+            bot.send_message(message.chat.id, "Sorry! I couldn't find any movie/series named " + str(message.text))
 
 
 @bot.callback_query_handler(func=lambda call: True)
