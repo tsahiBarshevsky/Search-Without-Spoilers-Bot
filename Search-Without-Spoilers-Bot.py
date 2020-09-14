@@ -111,8 +111,8 @@ media_code = None
 
 # Main function
 @bot.message_handler(func=lambda msg: msg.text is not None and msg.text != '/about' and msg.text != '/help'
-                     and msg.text != '/rating')
-def answer(message):
+                     and msg.text != '/rating' and msg.text != '/cast')
+def send_info(message):
     name = str(message.text.split())
     global movies  # Global list for search results
     movies = dataBase.search_movie(name)
@@ -305,7 +305,7 @@ def help_user(message):
 
 
 @bot.message_handler(commands=['rating'])
-def rating(message):
+def send_rating(message):
     # try:
     #     movies
     # except NameError:
@@ -334,6 +334,29 @@ def rating(message):
             bot.send_message(message.chat.id, "Sorry! this " + media.data['kind'] + " has no rating yet.")
         else:
             bot.send_message(message.chat.id, media.data['title'] + " got a rating of " + str(media_rating))
+
+
+@bot.message_handler(commands=['cast'])
+def send_cast(message):
+    if not media_code:
+        string = "Search information about a series or movie first " \
+                 "in order to use this command."
+        bot.send_message(message.chat.id, string)
+    else:
+        bot.send_message(message.chat.id, media_code)
+        media = dataBase.get_movie(media_code)
+        cast = media.get('cast')
+        if not cast:
+            bot.send_message(message.chat.id, "Sorry! this " + media.data['kind'] + " has no cast yet.")
+        else:
+            ret = []
+            for actor in cast[:10]:
+                ret.append("{0} as {1}".format(actor['name'], actor.currentRole))
+            url = dataBase.get_imdbURL(media)
+            cast_url = url + 'fullcredits?ref_=tt_cl_sm#cast'
+            ret.append("\nThis is partial list. You can see full cast here:")
+            ret.append(cast_url)
+            bot.send_message(message.chat.id, '\n'.join(map(str, ret)))
 
 
 while True:
