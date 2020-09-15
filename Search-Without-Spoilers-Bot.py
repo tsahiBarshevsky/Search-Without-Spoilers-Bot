@@ -341,7 +341,7 @@ def help_user(message):
 
 @bot.message_handler(commands=['rating'])
 def send_rating(message):
-    if not media_code:
+    if not media:
         string = "Search information about a series or movie first " \
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
@@ -357,7 +357,7 @@ def send_rating(message):
 
 @bot.message_handler(commands=['cast'])
 def send_cast(message):
-    if not media_code:
+    if not media:
         string = "Search information about a series or movie first " \
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
