@@ -1,9 +1,13 @@
 from urllib.request import urlopen
 from datetime import datetime
+from PIL import Image
+from io import BytesIO
+import requests
 import telebot
 import time
 import imdb
 import re
+import os
 
 
 def get_date(s_date):
@@ -35,6 +39,13 @@ def extract_code(string, movies_list):
         if item['title'] == string:
             return movies_list[i].getID()
         i += 1
+
+
+def url_clean(url):
+    base, ext = os.path.splitext(url)
+    i = url.count('@')
+    s2 = url.split('@')[0]
+    return s2 + '@' * i + ext
 
 
 def find_series_release_date(media):
@@ -111,7 +122,7 @@ media_code = None
 
 # Main function
 @bot.message_handler(func=lambda msg: msg.text is not None and msg.text != '/about' and msg.text != '/help'
-                     and msg.text != '/rating' and msg.text != '/cast')
+                     and msg.text != '/rating' and msg.text != '/cast' and msg.text != '/poster')
 def send_info(message):
     name = str(message.text.split())
     global movies  # Global list for search results
@@ -211,17 +222,15 @@ def send_info(message):
                 print("Release is on " + release)
                 bot.send_message(message.chat.id, "Release is on " + release)
     else:
-        keyboard = telebot.types.InlineKeyboardMarkup()
-        is_found = False
+        options = telebot.types.InlineKeyboardMarkup()  # keyboard
         for movie in movies:
             if movie['kind'] == 'tv series' or movie['kind'] == 'movie':
                 callback = extract_code(movie['title'], movies)  # every movie has a unique code
-                keyboard.row(telebot.types.InlineKeyboardButton
-                             (movie['title'] + " (" + movie['kind'] + ")", callback_data=callback))
-                is_found = True
-        if is_found:
+                options.row(telebot.types.InlineKeyboardButton
+                            (movie['title'] + " (" + movie['kind'] + ")", callback_data=callback))
+        if len(options.keyboard) >= 1:
             bot.send_message(message.chat.id, 'Oops! Seems like there are multiple options.\n'
-                                              'What have you wanted to search for?', reply_markup=keyboard)
+                                              'What have you wanted to search for?', reply_markup=options)
         else:
             bot.send_message(message.chat.id, "Sorry! I couldn't find any movie/series named " + str(message.text))
 
@@ -359,8 +368,29 @@ def send_cast(message):
             bot.send_message(message.chat.id, '\n'.join(map(str, ret)))
 
 
+@bot.message_handler(commands=['poster'])
+def send_poster(message):
+    if not media_code:
+        string = "Search information about a series or movie first " \
+                 "in order to use this command."
+        bot.send_message(message.chat.id, string)
+    else:
+        bot.send_message(message.chat.id, media_code)
+        media = dataBase.get_movie(media_code)
+        try:
+            cover_url = media['cover url']
+            full_size_url = url_clean(cover_url)
+            response = requests.get(full_size_url)
+            photo = Image.open(BytesIO(response.content))
+            bot.send_photo(message.chat.id, photo)
+        except Exception as ex:
+            print(ex)
+            bot.send_message(message.chat.id, "Sorry! this " + media.data['kind'] + " has no cover photo yet.")
+
+
 while True:
     try:
         bot.polling()
-    except Exception:
+    except Exception as e:
+        print(e)
         time.sleep(15)
