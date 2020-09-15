@@ -130,6 +130,7 @@ print("The bot is now running")
 # Create database
 dataBase = imdb.IMDb()
 media_code = None
+media = None
 
 
 # Main function
@@ -154,6 +155,7 @@ def send_info(message):
         bot.send_message(message.chat.id, "OK! Searching info about " + movies[0]['title']
                          + " (" + movies[0]['kind'] + ")")
         print(movies[0]['title'] + movies[0]['kind'])
+        global media
         media = dataBase.get_movie(code)  # Search for the movie/series by the ID
         if media['kind'] == 'tv series':
             # # getting seasons of the series
@@ -261,6 +263,7 @@ def callback_inline(call):
     print(call.data)
     global media_code
     media_code = call.data
+    global media
     media = dataBase.get_movie(call.data)  # Search for the movie/series by the ID
     if media['kind'] == 'tv series':
 
@@ -338,28 +341,12 @@ def help_user(message):
 
 @bot.message_handler(commands=['rating'])
 def send_rating(message):
-    # try:
-    #     movies
-    # except NameError:
-    #     string = "Search information about a series or movie first " \
-    #              "in order to use this command."
-    #     bot.send_message(message.chat.id, string)
-    # else:
-    #     media = dataBase.get_movie(movies[0].getID())
-    #     try:
-    #         media_rating = media.data['rating']
-    #     except KeyError:
-    #         bot.send_message(message.chat.id, "Oops! this " + media.data['kind'] + " has no rating yet.")
-    #     else:
-    #         bot.send_message(message.chat.id, media.data['title'] + " got a rating of " + str(media_rating) + ".")
-
     if not media_code:
         string = "Search information about a series or movie first " \
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
     else:
-        bot.send_message(message.chat.id, media_code)
-        media = dataBase.get_movie(media_code)
+        # bot.send_message(message.chat.id, media_code)
         try:
             media_rating = media.data['rating']
         except KeyError:
@@ -375,8 +362,8 @@ def send_cast(message):
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
     else:
-        bot.send_message(message.chat.id, media_code)
-        media = dataBase.get_movie(media_code)
+        # global media
+        # media = dataBase.get_movie(media_code)
         cast = media.get('cast')
         if not cast:
             bot.send_message(message.chat.id, "Sorry! this " + media.data['kind'] + " has no cast yet.")
@@ -386,20 +373,20 @@ def send_cast(message):
                 ret.append("{0} as {1}".format(actor['name'], actor.currentRole))
             url = dataBase.get_imdbURL(media)
             cast_url = url + 'fullcredits?ref_=tt_cl_sm#cast'
-            ret.append("\nThis is partial list. You can see full cast here:")
+            ret.append("\nThis is a partial list. You can see full cast here:")
             ret.append(cast_url)
             bot.send_message(message.chat.id, '\n'.join(map(str, ret)))
 
 
 @bot.message_handler(commands=['poster'])
 def send_poster(message):
-    if not media_code:
+    if not media:
         string = "Search information about a series or movie first " \
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
     else:
-        bot.send_message(message.chat.id, media_code)
-        media = dataBase.get_movie(media_code)
+        # global media
+        # media = dataBase.get_movie(media_code)
         try:
             cover_url = media['cover url']
             full_size_url = url_clean(cover_url)
