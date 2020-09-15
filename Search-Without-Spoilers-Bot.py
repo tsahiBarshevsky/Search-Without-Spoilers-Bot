@@ -120,7 +120,7 @@ def find_movie_release_date(media, code):
     return release_date, release
 
 
-# Important declaration
+# Important declarations
 bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
 bot = telebot.TeleBot(token=bot_token)
 today = datetime.today().strftime('%d %b %Y')
@@ -157,7 +157,7 @@ def send_info(message):
         print(movies[0]['title'] + movies[0]['kind'])
         global media
         media = dataBase.get_movie(code)  # Search for the movie/series by the ID
-        if media['kind'] == 'tv series':
+        if media['kind'] == 'tv series' or media['kind'] == 'tv mini series':
             # # getting seasons of the series
             # season = media.data['seasons']
             #
@@ -241,7 +241,7 @@ def send_info(message):
     else:
         options = telebot.types.InlineKeyboardMarkup()  # keyboard
         for movie in movies:
-            if movie['kind'] == 'tv series' or movie['kind'] == 'movie':
+            if movie['kind'] == 'tv series' or movie['kind'] == 'movie' or movie['kind'] == 'tv miniseries':
                 callback = extract_code(movie['title'], movies)  # every movie has a unique code
                 options.row(telebot.types.InlineKeyboardButton
                             (movie['title'] + " (" + movie['kind'] + ")", callback_data=callback))
@@ -265,8 +265,7 @@ def callback_inline(call):
     media_code = call.data
     global media
     media = dataBase.get_movie(call.data)  # Search for the movie/series by the ID
-    if media['kind'] == 'tv series':
-
+    if media['kind'] == 'tv series' or media['kind'] == 'tv mini series':
         release_date, release, title = find_series_release_date(media)
         print(release_date)
 
@@ -388,6 +387,7 @@ def send_poster(message):
         # global media
         # media = dataBase.get_movie(media_code)
         try:
+            bot.send_message(message.chat.id, "Just a few seconds...")
             cover_url = media['cover url']
             full_size_url = url_clean(cover_url)
             response = requests.get(full_size_url)
