@@ -307,9 +307,13 @@ def help_user(message):
     help_string = "What can I do?\n" \
                   "1. Search for a series new season release date.\n" \
                   "2. Search for a movie release date.\n" \
-                  "In both cases, just type the name of the series/movie. " \
+                  "In both cases, type the name of the series/movie. " \
                   "If I'll find some multiple choices, I'll present to you all the " \
-                  "options, so you can pick the right one."
+                  "options, so you can pick the right one.\n" \
+                  "3. Get the rating of a series/movie.\n" \
+                  "4. Get a partial of a series/movie cast.\n" \
+                  "5. Get a cover photo of a series/movie.\n" \
+                  "All last three cases based on the last search."
     bot.send_message(message.chat.id, help_string)
 
 
