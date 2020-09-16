@@ -131,12 +131,13 @@ print("The bot is now running")
 dataBase = imdb.IMDb()
 # media_code = None
 media = None
+# List of commands
+commands = ['/about', '/help', '/rating', '/cast', '/poster', '/genre']
 
 
 # Main function
-@bot.message_handler(func=lambda msg: msg.text is not None and msg.text != '/about' and msg.text != '/help'
-                     and msg.text != '/rating' and msg.text != '/cast' and msg.text != '/poster'
-                     and msg.text != '/genre')
+@bot.message_handler(func=lambda msg: msg.text is not None
+                     and not any(command in msg.text for command in commands))
 def send_info(message):
     name = str(message.text.split())
     global movies  # Global list for search results
@@ -352,7 +353,7 @@ def help_user(message):
                   "3. Get the rating of a series/movie.\n" \
                   "4. Get a partial of a series/movie cast.\n" \
                   "5. Get a cover photo of a series/movie.\n" \
-                  "6. Get the genres of the series/movie" \
+                  "6. Get the genres of the series/movie.\n" \
                   "All last four cases based on the last search."
     bot.send_message(message.chat.id, help_string)
 
