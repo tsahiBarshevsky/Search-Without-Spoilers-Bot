@@ -41,6 +41,7 @@ def extract_code(string, movies_list):
         i += 1
 
 
+# url clean for getting a bigger cover photo
 def url_clean(url):
     base, ext = os.path.splitext(url)
     i = url.count('@')
@@ -51,18 +52,7 @@ def url_clean(url):
 def find_series_release_date(media):
     # getting seasons of the series
     season = media.data['seasons']
-
-    # getting rating of the series
-    # rating = series.data['rating']
-    # print(rating)
-
-    # print the seasons
     print('There are', len(season), 'seasons')
-    # Episode_Release_date = dataBase.get_movie_release_dates(code)
-    # for i in Episode_Release_date['data']['release dates']:
-    #    if 'USA' in i:
-    #        print(i)
-
     url = dataBase.get_imdbURL(media)
     final_season = season[len(season) - 1]
     url_final_season = url + 'episodes?season=' + final_season + '&ref_=tt_eps_sn_' + final_season
@@ -80,8 +70,6 @@ def find_series_release_date(media):
     new_content = content.strip()  # remove \n from original string
     release = new_content.replace(".", "")  # remove . from month
     print(release)
-
-    # releaseDate = datetime.strptime(release, '%d %b %Y').date()
     release_date = get_date(release)
     print(release_date)
 
@@ -96,7 +84,7 @@ def find_series_release_date(media):
     new_title = title.replace(") - IMDb", "")
     print(new_title)
 
-    # return release_date, release, new_title
+    # checking the date and return an answer
     if release_date is None:
         return "Sorry! There's no available release date yet."
     # ended series
@@ -130,12 +118,11 @@ def find_movie_release_date(media, code):
     end_index = html.find('</a>', title_index)
     title = html[start_index:end_index]
 
-    # releaseDate = datetime.strptime(release, '%d %b %Y').date()
     release = extract_date(title)
     release_date = get_date(release)
     print(release_date)
-    # return release_date, release
-    # there's no info yet
+
+    # checking the date and return an answer
     if release_date is None:
         return "Sorry! There's no available release date yet."
     # The movie has released
@@ -154,17 +141,13 @@ bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
 bot = telebot.TeleBot(token=bot_token)
 today = datetime.today().strftime('%d %b %Y')
 currentDate = datetime.strptime(today, '%d %b %Y').date()
+dataBase = imdb.IMDb()  # IMDB Database
+media = None  # Global media variable for future results
+commands = ['/about', '/help', '/rating', '/cast', '/poster', '/genre']  # List of commands
 print("Bot is now running")
 
-# Create database
-dataBase = imdb.IMDb()
-# media_code = None
-media = None
-# List of commands
-commands = ['/about', '/help', '/rating', '/cast', '/poster', '/genre']
 
-
-# Main function
+# Main bot function
 @bot.message_handler(func=lambda msg: msg.text is not None and not any(command in msg.text for command in commands))
 def send_info(message):
     name = str(message.text.split())
@@ -179,14 +162,10 @@ def send_info(message):
     # Only on result - len(movies)=1
     elif len(movies) == 1:
         code = movies[0].getID()
-        # global media_code
-        # media_code = code
         print(code)
-        # print(media_code)
         bot.send_message(message.chat.id, "OK! Searching info about " + movies[0]['title']
                          + " (" + movies[0]['kind'] + ")")
         print(movies[0]['title'] + movies[0]['kind'])
-        # global media
         media = dataBase.get_movie(code)  # Search for the movie/series by the ID
         try:
             media['kind']
@@ -196,94 +175,14 @@ def send_info(message):
             media = None
         else:
             if media['kind'] == 'tv series' or media['kind'] == 'tv mini series':
-                # # getting seasons of the series
-                # season = media.data['seasons']
-                #
-                # # getting rating of the series
-                # # rating = series.data['rating']
-                # # print(rating)
-                #
-                # # print the seasons
-                # print('There are', len(season), 'seasons')
-                # # Episode_Release_date = dataBase.get_movie_release_dates(code)
-                # # for i in Episode_Release_date['data']['release dates']:
-                # #    if 'USA' in i:
-                # #        print(i)
-                #
-                # url = dataBase.get_imdbURL(media)
-                # final_season = season[len(season) - 1]
-                # url_final_season = url + 'episodes?season=' + final_season + '&ref_=tt_eps_sn_' + final_season
-                # print(url)
-                # print(url_final_season)
-                #
-                # # Get the release date of last season available
-                # page = urlopen(url_final_season)
-                # html_bytes = page.read()
-                # html = html_bytes.decode("utf-8")
-                # title_index = html.find('<div class="airdate">')
-                # start_index = title_index + len('<div class="airdate">')
-                # end_index = html.find('</div>', title_index)
-                # title = html[start_index:end_index]
-                # new_title = title.strip()  # remove \n from original string
-                # release = new_title.replace(".", "")  # remove . from month
-                # print(release)
-                #
-                # # releaseDate = datetime.strptime(release, '%d %b %Y').date()
-                # release_date = get_date(release)
-                # print(release_date)
-
                 ret = find_series_release_date(media)
                 bot.send_message(message.chat.id, ret)
-
-                # release_date, release, title = find_series_release_date(media)
-                # # there's no info yet
-                # if release_date is None:
-                #     print("Sorry! There's no available release date yet")
-                #     bot.send_message(message.chat.id, "Sorry! There's no available release date yet")
-                # # ended series
-                # elif release_date < currentDate:
-                #     if title[-2] == '–':
-                #         print("The series has no new season soon")
-                #         bot.send_message(message.chat.id, "The series has no new season soon")
-                #     else:
-                #         print("The series has ended")
-                #         bot.send_message(message.chat.id, "The series has ended")
-                # # next season is next year and only year is mentioned
-                # elif release_date.year > currentDate.year:
-                #     print("The next season will start in " + release)
-                #     bot.send_message(message.chat.id, "The next season will start in " + release)
-                # # next season is this year and the format is %d %b %Y
-                # elif release_date > currentDate:
-                #     print("The next season will start in " + release)
-                #     bot.send_message(message.chat.id, "The next season will start in " + release)
-                # # next season is this year and the format is %Y
-                # elif release_date.year == currentDate.year:
-                #     print("The next season will start in " + release)
-                #     bot.send_message(message.chat.id, "The next season will start in " + release)
             elif media['kind'] == 'movie' or media['kind'] == 'short':
                 ret = find_movie_release_date(media, code)
                 bot.send_message(message.chat.id, ret)
-                # release_date, release = find_movie_release_date(media, code)
-
-                # # there's no info yet
-                # if release_date is None:
-                #     print("Sorry! There's no available release date yet")
-                #     bot.send_message(message.chat.id, "Sorry! There's no available release date yet")
-                # # The movie has released
-                # elif release_date < currentDate:
-                #     print("Release was on " + release)
-                #     bot.send_message(message.chat.id, "Release was on " + release)
-                # # The movie will release this year
-                # elif release_date.year == currentDate.year:
-                #     print("Release is on " + release)
-                #     bot.send_message(message.chat.id, "Release is on " + release)
-                # # The movie will release in other year
-                # elif release_date > currentDate:
-                #     print("Release is on " + release)
-                #     bot.send_message(message.chat.id, "Release is on " + release)
     else:
-        # Multiple options. callback = movie IDs
-        options = telebot.types.InlineKeyboardMarkup()  # keyboard
+        # Multiple options; callback = movie IDs
+        options = telebot.types.InlineKeyboardMarkup()  # Keyboard
         for i, movie in enumerate(movies):
             if movie['kind'] == 'tv series' or movie['kind'] == 'movie' or \
                     movie['kind'] == 'tv miniseries' or movie['kind'] == 'short':
@@ -306,67 +205,11 @@ def send_info(message):
                     media = None
                 else:
                     if media['kind'] == 'tv series' or media['kind'] == 'tv mini series':
-                        # # getting seasons of the series
-                        # season = media.data['seasons']
-                        #
-                        # # getting rating of the series
-                        # # rating = series.data['rating']
-                        # # print(rating)
-                        #
-                        # # print the seasons
-                        # print('There are', len(season), 'seasons')
-                        # # Episode_Release_date = dataBase.get_movie_release_dates(code)
-                        # # for i in Episode_Release_date['data']['release dates']:
-                        # #    if 'USA' in i:
-                        # #        print(i)
-                        #
-                        # url = dataBase.get_imdbURL(media)
-                        # final_season = season[len(season) - 1]
-                        # url_final_season = url + 'episodes?season=' + final_season + '&ref_=tt_eps_sn_' + final_season
-                        # print(url)
-                        # print(url_final_season)
-                        #
-                        # # Get the release date of last season available
-                        # page = urlopen(url_final_season)
-                        # html_bytes = page.read()
-                        # html = html_bytes.decode("utf-8")
-                        # title_index = html.find('<div class="airdate">')
-                        # start_index = title_index + len('<div class="airdate">')
-                        # end_index = html.find('</div>', title_index)
-                        # title = html[start_index:end_index]
-                        # new_title = title.strip()  # remove \n from original string
-                        # release = new_title.replace(".", "")  # remove . from month
-                        # print(release)
-                        #
-                        # # releaseDate = datetime.strptime(release, '%d %b %Y').date()
-                        # release_date = get_date(release)
-                        # print(release_date)
-
-                        # release_date, release, title = find_series_release_date(media)
-                        # there's no info yet
                         ret = find_series_release_date(media)
                         bot.send_message(message.chat.id, ret)
                     elif media['kind'] == 'movie' or media['kind'] == 'short':
                         ret = find_movie_release_date(media, callback)
                         bot.send_message(message.chat.id, ret)
-                        # release_date, release = find_movie_release_date(media, callback)
-                        #
-                        # # there's no info yet
-                        # if release_date is None:
-                        #     print("Sorry! There's no available release date yet")
-                        #     bot.send_message(message.chat.id, "Sorry! There's no available release date yet")
-                        # # The movie has released
-                        # elif release_date < currentDate:
-                        #     print("Release was on " + release)
-                        #     bot.send_message(message.chat.id, "Release was on " + release)
-                        # # The movie will release this year
-                        # elif release_date.year == currentDate.year:
-                        #     print("Release is on " + release)
-                        #     bot.send_message(message.chat.id, "Release is on " + release)
-                        # # The movie will release in other year
-                        # elif release_date > currentDate:
-                        #     print("Release is on " + release)
-                        #     bot.send_message(message.chat.id, "Release is on " + release)
             else:
                 bot.send_message(message.chat.id, "Oops! I couldn't find " + message.text + ".\n"
                                  "Maybe this is what you've wanted to search for?",
@@ -393,8 +236,6 @@ def callback_inline(call):
                     index = i
 
     print(call.data)
-    # global media_code
-    # media_code = call.data
     global media
     media = dataBase.get_movie(call.data)  # Search for the movie/series by the ID
     try:
@@ -407,54 +248,9 @@ def callback_inline(call):
         if media['kind'] == 'tv series' or media['kind'] == 'tv mini series':
             ret = find_series_release_date(media)
             bot.send_message(call.message.chat.id, ret)
-            # release_date, release, title = find_series_release_date(media)
-            # print(release_date)
-            #
-            # # there's no info yet
-            # if release_date is None:
-            #     print("Sorry! There's no available release date yet")
-            #     bot.send_message(call.message.chat.id, "Sorry! There's no available release date yet")
-            # # ended series
-            # elif release_date < currentDate:
-            #     if title[-2] == '–':
-            #         print("The series has no new season soon")
-            #         bot.send_message(call.message.chat.id, "The series has no new season soon")
-            #     else:
-            #         print("The series has ended")
-            #         bot.send_message(call.message.chat.id, "The series has ended")
-            # # next season is next year and only year is mentioned
-            # elif release_date.year > currentDate.year:
-            #     print("The next season will start in " + release)
-            #     bot.send_message(call.message.chat.id, "The next season will start in " + release)
-            # # next season is this year and the format is %d %b %Y
-            # elif release_date > currentDate:
-            #     print("The next season will start in " + release)
-            #     bot.send_message(call.message.chat.id, "The next season will start in " + release)
-            # # next season is this year and the format is %Y
-            # elif release_date.year == currentDate.year:
-            #     print("The next season will start in " + release)
-            #     bot.send_message(call.message.chat.id, "The next season will start in " + release)
         elif media['kind'] == 'movie' or media['kind'] == 'short':
             ret = find_movie_release_date(media, call.data)
             bot.send_message(call.message.chat.id, ret)
-            # release_date, release = find_movie_release_date(media, call.data)
-            #
-            # # there's no info yet
-            # if release_date is None:
-            #     print("Sorry! There's no available release date yet")
-            #     bot.send_message(call.message.chat.id, "Sorry! There's no available release date yet")
-            # # The movie has released
-            # elif release_date < currentDate:
-            #     print("Release was on " + release)
-            #     bot.send_message(call.message.chat.id, "Release was on " + release)
-            # # The movie will release this year
-            # elif release_date.year == currentDate.year:
-            #     print("Release is on " + release)
-            #     bot.send_message(call.message.chat.id, "Release is on " + release)
-            # # The movie will release in other year
-            # elif release_date > currentDate:
-            #     print("Release is on " + release)
-            #     bot.send_message(call.message.chat.id, "Release is on " + release)
 
 
 @bot.message_handler(commands=['about'])
@@ -489,7 +285,6 @@ def send_rating(message):
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
     else:
-        # bot.send_message(message.chat.id, media_code)
         try:
             media_rating = media.data['rating']
         except KeyError:
@@ -505,8 +300,6 @@ def send_cast(message):
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
     else:
-        # global media
-        # media = dataBase.get_movie(media_code)
         cast = media.get('cast')
         if not cast:
             bot.send_message(message.chat.id, "Sorry! this " + media.data['kind'] + " has no cast yet.")
@@ -528,8 +321,6 @@ def send_poster(message):
                  "in order to use this command."
         bot.send_message(message.chat.id, string)
     else:
-        # global media
-        # media = dataBase.get_movie(media_code)
         try:
             bot.send_message(message.chat.id, "Just a moment...")
             cover_url = media['cover url']
