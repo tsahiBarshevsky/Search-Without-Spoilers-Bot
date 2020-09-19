@@ -163,7 +163,7 @@ def send_info(message):
     elif len(movies) == 1:
         code = movies[0].getID()
         print(code)
-        bot.send_message(message.chat.id, "OK! Searching info about " + movies[0]['title']
+        bot.send_message(message.chat.id, "OK! Searching information about " + movies[0]['title']
                          + " (" + movies[0]['kind'] + ")")
         print(movies[0]['title'] + movies[0]['kind'])
         media = dataBase.get_movie(code)  # Search for the movie/series by the ID
@@ -195,7 +195,7 @@ def send_info(message):
         elif len(options.keyboard) == 1:
             # check if this is the exact input from user, if not, send to callback_inline
             if message.text.lower() == movies[index]['title'].lower():
-                bot.send_message(message.chat.id, "OK! Searching info about " + movies[index]['title'])
+                bot.send_message(message.chat.id, "OK! Searching information about " + movies[index]['title'])
                 media = dataBase.get_movie(callback)  # Search for the movie/series by the ID
                 try:
                     media['kind']
@@ -230,7 +230,7 @@ def callback_inline(call):
                     bot.send_message(call.message.chat.id, "Oops! Looks like that " + movies[index]['title'] +
                                      " is on development, so there's no information yet.")
                 else:
-                    bot.send_message(call.message.chat.id, "OK! Searching info about " + movies[i]['title']
+                    bot.send_message(call.message.chat.id, "OK! Searching information about " + movies[i]['title']
                                      + " (" + movies[i]['kind'] + ")")
                     print(movies[i]['title'] + movies[i]['kind'])
                     index = i
@@ -271,7 +271,7 @@ def help_user(message):
                   "If I'll find some multiple choices, I'll present to you all the " \
                   "options, so you can pick the right one.\n" \
                   "3. Get the rating of a series/movie.\n" \
-                  "4. Get a partial of a series/movie cast.\n" \
+                  "4. Get a partial list of a series/movie cast.\n" \
                   "5. Get a cover photo of a series/movie.\n" \
                   "6. Get the genres of the series/movie.\n" \
                   "All last four cases based on the last search."
