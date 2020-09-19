@@ -98,22 +98,22 @@ def find_series_release_date(media):
 
     # return release_date, release, new_title
     if release_date is None:
-        return "Sorry! There's no available release date yet"
+        return "Sorry! There's no available release date yet."
     # ended series
     elif release_date < currentDate:
         if title[-2] == '–':
-            return "The series has no new season soon"
+            return "The series has no new season soon."
         else:
-            return "The series has ended"
+            return "The series has ended."
     # next season is next year and only year is mentioned
     elif release_date.year > currentDate.year:
-        return "The next season will start in " + release
+        return "The next season will start in " + release + "."
     # next season is this year and the format is %d %b %Y
     elif release_date > currentDate:
-        return "The next season will start in " + release
+        return "The next season will start in " + release + "."
     # next season is this year and the format is %Y
     elif release_date.year == currentDate.year:
-        return "The next season will start in " + release
+        return "The next season will start in " + release + "."
 
 
 def find_movie_release_date(media, code):
@@ -137,16 +137,16 @@ def find_movie_release_date(media, code):
     # return release_date, release
     # there's no info yet
     if release_date is None:
-        return "Sorry! There's no available release date yet"
+        return "Sorry! There's no available release date yet."
     # The movie has released
     elif release_date < currentDate:
-        return "Release was on " + release
+        return "Release was on " + release + "."
     # The movie will release this year
     elif release_date.year == currentDate.year:
-        return "Release is on " + release
+        return "Release is on " + release + "."
     # The movie will release in other year
     elif release_date > currentDate:
-        return "Release is on " + release
+        return "Release is on " + release + "."
 
 
 # Important declarations
@@ -154,7 +154,7 @@ bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
 bot = telebot.TeleBot(token=bot_token)
 today = datetime.today().strftime('%d %b %Y')
 currentDate = datetime.strptime(today, '%d %b %Y').date()
-print("The bot is now running")
+print("Bot is now running")
 
 # Create database
 dataBase = imdb.IMDb()
@@ -165,8 +165,7 @@ commands = ['/about', '/help', '/rating', '/cast', '/poster', '/genre']
 
 
 # Main function
-@bot.message_handler(func=lambda msg: msg.text is not None
-                     and not any(command in msg.text for command in commands))
+@bot.message_handler(func=lambda msg: msg.text is not None and not any(command in msg.text for command in commands))
 def send_info(message):
     name = str(message.text.split())
     global movies  # Global list for search results
@@ -175,8 +174,8 @@ def send_info(message):
     print(movies)
     # Nothing found - movies is empty
     if not movies:
-        print("Sorry! I couldn't find any movie/series named " + str(message.text))
-        bot.reply_to(message, "Sorry! I couldn't find any movie/series named " + str(message.text))
+        print("Sorry! I couldn't find any movie/series named " + str(message.text) + ".")
+        bot.reply_to(message, "Sorry! I couldn't find any movie/series named " + str(message.text) + ".")
     # Only on result - len(movies)=1
     elif len(movies) == 1:
         code = movies[0].getID()
@@ -287,7 +286,7 @@ def send_info(message):
         options = telebot.types.InlineKeyboardMarkup()  # keyboard
         for i, movie in enumerate(movies):
             if movie['kind'] == 'tv series' or movie['kind'] == 'movie' or \
-               movie['kind'] == 'tv miniseries' or movie['kind'] == 'short':
+                    movie['kind'] == 'tv miniseries' or movie['kind'] == 'short':
                 index = i
                 callback = extract_code(movie['title'], movies)  # every movie has a unique code
                 options.row(telebot.types.InlineKeyboardButton
@@ -370,8 +369,8 @@ def send_info(message):
                         #     bot.send_message(message.chat.id, "Release is on " + release)
             else:
                 bot.send_message(message.chat.id, "Oops! I couldn't find " + message.text + ".\n"
-                                                  "Maybe this is what you've wanted to search for?",
-                                                  reply_markup=options)
+                                 "Maybe this is what you've wanted to search for?",
+                                 reply_markup=options)
         else:
             bot.send_message(message.chat.id, 'Oops! Seems like there are multiple options.\n'
                                               'What have you wanted to search for?', reply_markup=options)
