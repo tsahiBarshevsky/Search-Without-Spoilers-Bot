@@ -257,7 +257,7 @@ def callback_inline(call):
 def about(message):
     about_string = \
         "Want to search for information about a series or movie without being exposed to spoilers? " \
-        "I'm your solution! To get some help about how I'm working, tap /help or chose it from the commands" \
+        "I'm your solution! To get some help about how I'm working, tap /help or choose it from the commands" \
         " menu below 👇🏼"
     bot.send_message(message.chat.id, about_string)
 
@@ -334,7 +334,7 @@ def send_poster(message):
 
 
 @bot.message_handler(commands=['genre'])
-def send_poster(message):
+def send_genre(message):
     if not media:
         string = "Search information about a series or movie first " \
                  "in order to use this command."
