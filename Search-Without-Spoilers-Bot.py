@@ -143,7 +143,7 @@ today = datetime.today().strftime('%d %b %Y')
 currentDate = datetime.strptime(today, '%d %b %Y').date()
 dataBase = imdb.IMDb()  # IMDB Database
 media = None  # Global media variable for future results
-commands = ['/about', '/help', '/rating', '/cast', '/poster', '/genre']  # List of commands
+commands = ['/start', '/about', '/help', '/rating', '/cast', '/poster', '/genre']  # List of commands
 print("Bot is now running")
 
 
@@ -251,6 +251,15 @@ def callback_inline(call):
         elif media['kind'] == 'movie' or media['kind'] == 'short':
             ret = find_movie_release_date(media, call.data)
             bot.send_message(call.message.chat.id, ret)
+
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    start_string = "Hey, I'm the Search Without Spoilers Bot!\n" \
+                   "I can search for you a release date of a series' new season " \
+                   "or movie's release date. To start, just send me a name of the " \
+                   "series or movie you want to search. For help, tap /help."
+    bot.send_message(message.chat.id, start_string)
 
 
 @bot.message_handler(commands=['about'])
