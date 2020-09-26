@@ -355,14 +355,3 @@ def send_genre(message):
         except Exception as ex:
             print(ex)
             bot.send_message(message.chat.id, "Sorry! this " + media.data['kind'] + " has no genres yet.")
-
-
-while True:
-    try:
-        bot.polling()
-    except Exception as e:
-        print(e)
-        time.sleep(15)
-
-
-#  to build
