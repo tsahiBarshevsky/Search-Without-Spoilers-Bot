@@ -1,1 +1,1 @@
-worker: python Search-Without-Spoilers-Bot.py
+web: python3 Search-Without-Spoilers-Bot.py
