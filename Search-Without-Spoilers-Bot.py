@@ -8,6 +8,7 @@ import time
 import imdb
 import re
 import os
+from os import environ
 
 
 def get_date(s_date):
@@ -137,7 +138,7 @@ def find_movie_release_date(media, code):
 
 
 # Important declarations
-bot_token = '1350001699:AAGgFC55g8IM8FbQzu4kCbmr1az2aFLXDjo'
+bot_token = environ['bot_token']
 bot = telebot.TeleBot(token=bot_token)
 today = datetime.today().strftime('%d %b %Y')
 currentDate = datetime.strptime(today, '%d %b %Y').date()
