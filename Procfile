@@ -1,1 +1,0 @@
-web: python3 Search-Without-Spoilers-Bot.py
